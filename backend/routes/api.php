@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\PersonaController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,6 +15,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+//LISTAR TODOS
+Route::get('/personas', [PersonaController::class, 'getAll']);
+
+//LISTAR ESPECIFICAMENTE
+Route::get('/personas/{id}', [PersonaController::class, 'getItem']);
+
+//INSERTAR
+Route::post('/personas', [PersonaController::class, 'store']);
+
+//ACTUALIZAR
+Route::put('/personas/{id}', [PersonaController::class, 'updatePut']);
+
+//BORRAR
+Route::delete('/personas/{id}', [PersonaController::class, 'delete']);
