@@ -210,7 +210,7 @@ export default {
 		async Listar() {
 			let self = this;
 			await axios
-				.get("http://backend.test:8000/api/personas")
+				.get("https://divisas-backend.codertec.net/api/personas")
 				.then(function (response) {
 					let status = response.status;
 					if (status == 200) {
@@ -247,7 +247,10 @@ export default {
 
 			if (this.frmPersona.id == null) {
 				await axios
-					.post("http://backend.test:8000/api/personas", self.frmPersona)
+					.post(
+						"https://divisas-backend.codertec.net/api/personas",
+						self.frmPersona
+					)
 					.then(function (response) {
 						let status = response.status;
 						if (status == 200) {
@@ -260,7 +263,8 @@ export default {
 			} else {
 				await axios
 					.put(
-						"http://backend.test:8000/api/personas/" + self.frmPersona.id,
+						"https://divisas-backend.codertec.net/api/personas/" +
+							self.frmPersona.id,
 						self.frmPersona
 					)
 					.then(function (response) {
