@@ -6,11 +6,7 @@
 
 		<fieldset class="form-group border p-3 col-md-6 offset-md-3">
 			<legend class="w-auto px-2">Datos del personal</legend>
-			<div class="text-end">
-				<button type="button" class="btn btn-danger" @click="Limpiar">
-					<i class="bi bi-eraser-fill"></i> LIMPIAR
-				</button>
-			</div>
+
 			<br />
 			<div class="row">
 				<div class="form-group col-md-3">
@@ -18,34 +14,54 @@
 					<input
 						type="text"
 						class="form-control mayus text-center"
-						:class="[
-							submited
-								? $v.frmPersona.codigo.$invalid
-									? 'is-invalid'
-									: 'is-valid'
-								: '',
-						]"
-						v-model="frmPersona.codigo"
-						maxlength="8"
-						oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+						:value="frmPersona.codigo"
+						disabled
 					/>
 				</div>
 				<div class="form-group col-md-3">
-					<label for="">DNI/Pasaporte</label>
+					<div class="form-check">
+						<input
+							class="form-check-input"
+							type="radio"
+							v-model="frmPersona.tipo_documento"
+							value="DNI"
+							id="rdbDni"
+							:disabled="deshabilitado"
+						/>
+						<label class="form-check-label" for="rdbDni"> DNI </label>
+					</div>
+					<div class="form-check">
+						<input
+							class="form-check-input"
+							type="radio"
+							v-model="frmPersona.tipo_documento"
+							value="PASAPORTE"
+							id="rdbPasaporte"
+							:disabled="deshabilitado"
+						/>
+						<label class="form-check-label" for="rdbPasaporte">
+							PASAPORTE
+						</label>
+					</div>
+				</div>
+
+				<div class="form-group col-md-3">
+					<label for="">{{ frmPersona.tipo_documento }}</label>
 					<input
 						type="number"
 						class="form-control text-center"
 						:class="[
 							submited
-								? $v.frmPersona.dni.$invalid
+								? $v.frmPersona.documento.$invalid
 									? 'is-invalid'
 									: 'is-valid'
 								: '',
 						]"
-						v-model="frmPersona.dni"
+						v-model="frmPersona.documento"
 						min="0"
-						maxlength="8"
+						:maxlength="limite_documento"
 						oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+						:disabled="deshabilitado"
 					/>
 				</div>
 				<div class="row col-md-12">
@@ -62,6 +78,7 @@
 									: '',
 							]"
 							v-model="frmPersona.nombres"
+							:disabled="deshabilitado"
 						/>
 					</div>
 					<div class="form-group col-md-6">
@@ -77,6 +94,7 @@
 									: '',
 							]"
 							v-model="frmPersona.apellidos"
+							:disabled="deshabilitado"
 						/>
 					</div>
 				</div>
@@ -86,6 +104,7 @@
 						type="date"
 						class="form-control"
 						v-model="frmPersona.fecha_nacimiento"
+						:disabled="deshabilitado"
 					/>
 				</div>
 				<div class="form-group col-md-9">
@@ -94,6 +113,7 @@
 						class="form-control mayus"
 						rows="2"
 						v-model="frmPersona.lugar_vivienda"
+						:disabled="deshabilitado"
 					/>
 				</div>
 				<div class="form-group col-md-3">
@@ -101,44 +121,75 @@
 					<select
 						class="form-select"
 						v-model="frmPersona.pais"
-						:class="[
-							submited
-								? $v.frmPersona.pais.$invalid
-									? 'is-invalid'
-									: 'is-valid'
-								: '',
-						]"
+						:disabled="deshabilitado"
 					>
 						<option :value="0" disabled>Seleccione...</option>
 						<option value="PERU">Perú</option>
+						<option value="COLOMBIA">Colombia</option>
+						<option value="BRASIL">Brasil</option>
 						<option value="CHILE">Chile</option>
-						<option value="VENEZUELA">Venezuela</option>
+						<option value="ARGENTINA">Argentina</option>
+						<option value="OTROS">Otros</option>
 					</select>
 				</div>
 			</div>
 			<br />
-			<div class="text-end">
-				<button type="button" class="btn btn-primary" @click="Registrar">
-					<i class="bi bi-check"></i> REGISTRAR
-				</button>
+			<div class="text-center">
+				<div class="btn-group btn-group-toggle" data-toggle="buttons">
+					<button
+						type="button"
+						class="btn btn-primary"
+						@click="Agregar"
+						:disabled="modo == 'EDICION'"
+					>
+						<i class="bi bi-plus-circle"></i> AGREGAR
+					</button>
+					<button
+						type="button"
+						class="btn btn-warning"
+						:disabled="modo == 'EDICION'"
+						@click="Actualizar"
+					>
+						<i class="bi bi-arrow-clockwise"></i> ACTUALIZAR
+					</button>
+					<button
+						type="button"
+						class="btn btn-success"
+						:disabled="modo != 'EDICION'"
+						@click="Grabar"
+					>
+						<i class="bi bi-save-fill"></i> GRABAR
+					</button>
+					<button
+						type="button"
+						class="btn btn-danger"
+						:disabled="modo != 'EDICION'"
+						@click="Cancelar"
+					>
+						<i class="bi bi-x-circle"></i>
+						CANCELAR
+					</button>
+				</div>
 			</div>
 		</fieldset>
 		<br />
 		<h2 class="text-center">Lista de personas</h2>
-		<div class="col-md-8 offset-md-2">
-			<table class="table table-hover">
+		<div class="col-md-10 offset-md-1">
+			<table class="table table-hover table-responsive">
 				<thead>
 					<tr>
-						<th>Editar</th>
-						<th>Código</th>
-						<th>DNI</th>
-						<th>Nombres</th>
-						<th>Apellidos</th>
-						<th>Fecha Nacimiento</th>
-						<th>Lugar vivienda</th>
-						<th>País</th>
-						<th>Creado</th>
-						<th>Actualizado</th>
+						<th>N°</th>
+						<th>CÓDIGO</th>
+						<th>NOMBRES</th>
+						<th>APELLIDOS</th>
+						<th>TIPO DOCUMENTO</th>
+						<th>DOCUMENTO</th>
+
+						<th>FECHA NACIMIENTO</th>
+						<th>LUGAR VIVIENDA</th>
+						<th>PAÍS</th>
+						<th>CREADO</th>
+						<th>ACTUALIZADO</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -148,23 +199,18 @@
 						style="background: #ffffff"
 					>
 						<td>
-							<button
-								type="button"
-								class="btn btn-warning"
-								@click="Editar(item)"
-							>
-								<i class="bi bi-pencil"></i>
-							</button>
+							{{ index + 1 }}
 						</td>
-						<td>{{ item.codigo }}</td>
-						<td>{{ item.dni }}</td>
+						<td align="center">{{ item.codigo }}</td>
 						<td>{{ item.nombres }}</td>
 						<td>{{ item.apellidos }}</td>
-						<td>{{ item.fecha_nacimiento }}</td>
+						<td align="center">{{ item.tipo_documento }}</td>
+						<td align="center">{{ item.documento }}</td>
+						<td align="center">{{ item.fecha_nacimiento }}</td>
 						<td>{{ item.lugar_vivienda }}</td>
-						<td>{{ item.pais }}</td>
-						<td>{{ item.created_at }}</td>
-						<td>{{ item.updated_at }}</td>
+						<td align="center">{{ item.pais }}</td>
+						<td align="center">{{ item.created_at }}</td>
+						<td align="center">{{ item.updated_at }}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -173,9 +219,8 @@
 </template>
 
 <script>
-import axios from "axios";
 import { required } from "vuelidate/lib/validators";
-const noZero = (value) => value != 0;
+
 export default {
 	data() {
 		return {
@@ -184,23 +229,35 @@ export default {
 			frmPersona: {
 				id: null,
 				codigo: null,
-				dni: null,
+				tipo_documento: "DNI",
+				documento: null,
 				nombres: null,
 				apellidos: null,
 				fecha_nacimiento: null,
 				lugar_vivienda: null,
 				pais: 0,
 			},
+			modo: "VISTA",
+			deshabilitado: true,
 		};
 	},
 
 	validations: {
 		frmPersona: {
-			codigo: { required },
-			dni: { required },
+			documento: { required },
 			nombres: { required },
 			apellidos: { required },
-			pais: { noZero },
+		},
+	},
+	computed: {
+		limite_documento() {
+			let cantidad_digitos = 0;
+			if (this.frmPersona.tipo_documento == "DNI") {
+				cantidad_digitos = 8;
+			} else if (this.frmPersona.tipo_documento == "PASAPORTE") {
+				cantidad_digitos = 10;
+			}
+			return cantidad_digitos;
 		},
 	},
 	mounted() {
@@ -209,14 +266,12 @@ export default {
 	methods: {
 		async Listar() {
 			let self = this;
-			await axios
-				.get("https://divisas-backend.codertec.net/api/personas")
-				.then(function (response) {
-					let status = response.status;
-					if (status == 200) {
-						return (self.personas = response.data.data);
-					}
-				});
+			await this.$axios.get("/api/personas").then(function (response) {
+				let status = response.status;
+				if (status == 200) {
+					return (self.personas = response.data.data);
+				}
+			});
 		},
 
 		Editar(item) {
@@ -229,51 +284,131 @@ export default {
 			this.frmPersona.lugar_vivienda = item.lugar_vivienda;
 			this.frmPersona.pais = item.pais;
 		},
-		async Registrar() {
+
+		Agregar() {
+			this.deshabilitado = false;
+			this.modo = "EDICION";
+		},
+		async Actualizar() {
+			let self = this;
+			const inputOptions = { 0: "DNI", 1: "PASAPORTE" };
+
+			const { value: tipo_documento } = await this.$swal.fire({
+				title: "TIPO DE DOCUMENTO",
+				input: "radio",
+				inputOptions: inputOptions,
+				confirmButtonText: "Siguiente",
+				showCancelButton: true,
+				cancelButtonText: "Cancelar",
+				inputValidator: (value) => {
+					if (!value) {
+						return "Por favor escoja una opción";
+					}
+				},
+			});
+
+			if (tipo_documento) {
+				let tipo = inputOptions[tipo_documento];
+				this.$swal.fire({
+					title: "INGRESE EL " + tipo,
+					input: "number",
+					showCancelButton: true,
+					confirmButtonText: "Buscar",
+					showLoaderOnConfirm: true,
+					inputValidator: (value) => {
+						if (tipo == "DNI" && value.length != 8) {
+							return "El DNI debe tener 8 dígitos";
+						} else if (tipo == "PASAPORTE" && value.length != 10) {
+							return "El PASAPORTE debe tener 10 dígitos";
+						}
+					},
+					preConfirm: (documento) => {
+						self.$axios
+							.get("/api/personas/" + tipo + "/" + documento)
+							.then(function (response) {
+								let status = response.status;
+
+								if (status == 200) {
+									let data = response.data.data;
+
+									if (data != null) {
+										self.submited = false;
+										self.deshabilitado = false;
+										self.modo = "EDICION";
+										self.frmPersona = data;
+										return self.$swal.fire({
+											icon: "success",
+											title: "¡PERSONA ENCONTRADA!",
+											allowOutsideClick: false,
+										});
+									} else {
+										return self.$swal.fire({
+											icon: "error",
+											title: "¡Ups!",
+											text: "No se encontró ningún resultado",
+											allowOutsideClick: false,
+										});
+									}
+								}
+							});
+					},
+					allowOutsideClick: () => !this.$swal.isLoading(),
+				});
+			}
+		},
+		Cancelar() {
+			this.submited = false;
+			this.deshabilitado = true;
+			this.modo = "VISTA";
+			this.Limpiar();
+		},
+		async Grabar() {
 			let self = this;
 			this.submited = true;
 
 			if (this.$v.frmPersona.$invalid) {
-				return alert("Debe rellenar todos los datos");
-			}
-
-			if (this.frmPersona.codigo.length < 8) {
-				return alert("El código debe tener 8 dígitos");
-			}
-
-			if (this.frmPersona.dni.length < 8) {
-				return alert("El DNI debe tener 8 dígitos");
+				return this.$swal.fire({
+					icon: "warnign",
+					title: "¡Ups!",
+					text: "Faltan registrar algunos campos",
+					allowOutsideClick: false,
+				});
 			}
 
 			if (this.frmPersona.id == null) {
-				await axios
-					.post(
-						"https://divisas-backend.codertec.net/api/personas",
-						self.frmPersona
-					)
+				await this.$axios
+					.post("/api/personas", self.frmPersona)
 					.then(function (response) {
 						let status = response.status;
 						if (status == 200) {
 							self.Listar();
 							self.Limpiar();
 							self.submited = false;
-							return alert("Datos guardados");
+							self.deshabilitado = true;
+							self.modo = "VISTA";
+							return self.$swal.fire({
+								icon: "success",
+								title: "¡ÉXITO!",
+								allowOutsideClick: false,
+							});
 						}
 					});
 			} else {
-				await axios
-					.put(
-						"https://divisas-backend.codertec.net/api/personas/" +
-							self.frmPersona.id,
-						self.frmPersona
-					)
+				await this.$axios
+					.put("/api/personas/" + self.frmPersona.id, self.frmPersona)
 					.then(function (response) {
 						let status = response.status;
 						if (status == 200) {
 							self.Listar();
 							self.Limpiar();
 							self.submited = false;
-							return alert("Datos guardados");
+							self.deshabilitado = true;
+							self.modo = "VISTA";
+							return self.$swal.fire({
+								icon: "success",
+								title: "¡ÉXITO!",
+								allowOutsideClick: false,
+							});
 						}
 					});
 			}
@@ -282,7 +417,8 @@ export default {
 		Limpiar() {
 			this.frmPersona.id = null;
 			this.frmPersona.codigo = null;
-			this.frmPersona.dni = null;
+			this.frmPersona.tipo_documento = "DNI";
+			this.frmPersona.documento = null;
 			this.frmPersona.nombres = null;
 			this.frmPersona.apellidos = null;
 			this.frmPersona.fecha_nacimiento = null;

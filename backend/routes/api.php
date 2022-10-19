@@ -19,7 +19,7 @@ use App\Http\Controllers\PersonaController;
 Route::get('/personas', [PersonaController::class, 'getAll']);
 
 //LISTAR ESPECIFICAMENTE
-Route::get('/personas/{id}', [PersonaController::class, 'getItem']);
+Route::get('/personas/{tipo_documento}/{documento}', [PersonaController::class, 'getItem']);
 
 //INSERTAR
 Route::post('/personas', [PersonaController::class, 'store']);

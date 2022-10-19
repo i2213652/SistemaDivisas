@@ -16,8 +16,9 @@ return new class extends Migration
         $this->down();
         Schema::create('personas', function (Blueprint $table) {
             $table->id();
-            $table->string('codigo', 8);
-            $table->string('dni', 8);
+            $table->string('codigo', 8)->nullable();
+            $table->string('tipo_documento', 20);
+            $table->string('documento', 10);
             $table->string('nombres', 50);
             $table->string('apellidos', 200);
             $table->date('fecha_nacimiento')->nullable();

@@ -19,11 +19,15 @@ class PersonaController extends Controller
         return response()->json($response, 200);
     }
 
-    public function getItem($id)
+    public function getItem($tipo_documento, $documento)
     {
+
         $response = new \stdClass();
 
-        $persona = Persona::find($id);
+        $persona = Persona::where([
+            ['tipo_documento', $tipo_documento],
+            ['documento', $documento]
+        ])->get()->last();
 
         $response->success = true;
         $response->data = $persona;
@@ -35,19 +39,26 @@ class PersonaController extends Controller
     {
         $response = new \stdClass();
 
-        $sector = new Persona();
-        $sector->codigo = mb_strtoupper($request->codigo);
-        $sector->dni = $request->dni;
-        $sector->nombres = mb_strtoupper($request->nombres);
-        $sector->apellidos = mb_strtoupper($request->apellidos);
-        $sector->fecha_nacimiento = $request->fecha_nacimiento;
-        $sector->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
-        $sector->pais = $request->pais;
+        $persona = new Persona();
 
-        $sector->save();
+        $persona->tipo_documento = $request->tipo_documento;
+        $persona->documento = $request->documento;
+        $persona->nombres = mb_strtoupper($request->nombres);
+        $persona->apellidos = mb_strtoupper($request->apellidos);
+        $persona->fecha_nacimiento = $request->fecha_nacimiento;
+        $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
+        $persona->pais = $request->pais;
+
+        $persona->save();
+        $id = $persona->id;
+
+        $año = substr($request->fecha_nacimiento, 0, 4);
+        $codigo =  $año . (str_pad(strval(intval($id)), 4, "0", STR_PAD_LEFT));
+        $persona->codigo = $codigo;
+        Persona::where('id', $id)->update(['codigo' => $codigo]);
 
         $response->success = true;
-        $response->data = $sector;
+        $response->data = $persona;
 
         return response()->json($response, 200);
     }
@@ -55,19 +66,19 @@ class PersonaController extends Controller
     public function updatePut(Request $request, $id)
     {
         $response = new \stdClass();
-        $sector = Persona::find($id);
-        $sector->codigo = mb_strtoupper($request->codigo);
-        $sector->dni = $request->dni;
-        $sector->nombres = mb_strtoupper($request->nombres);
-        $sector->apellidos = mb_strtoupper($request->apellidos);
-        $sector->fecha_nacimiento = $request->fecha_nacimiento;
-        $sector->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
-        $sector->pais = $request->pais;
+        $persona = Persona::find($id);
+        $persona->codigo = mb_strtoupper($request->codigo);
+        $persona->dni = $request->dni;
+        $persona->nombres = mb_strtoupper($request->nombres);
+        $persona->apellidos = mb_strtoupper($request->apellidos);
+        $persona->fecha_nacimiento = $request->fecha_nacimiento;
+        $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
+        $persona->pais = $request->pais;
 
-        $sector->save();
+        $persona->save();
 
         $response->success = true;
-        $response->data = $sector;
+        $response->data = $persona;
 
         return response()->json($response, 200);
     }
@@ -77,8 +88,8 @@ class PersonaController extends Controller
     {
         $response = new \stdClass();
 
-        $sector = Persona::find($id);
-        $sector->delete();
+        $persona = Persona::find($id);
+        $persona->delete();
 
         $response->success = true;
 
