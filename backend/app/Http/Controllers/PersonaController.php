@@ -38,24 +38,35 @@ class PersonaController extends Controller
     public function store(Request $request)
     {
         $response = new \stdClass();
-
         $persona = new Persona();
 
-        $persona->tipo_documento = $request->tipo_documento;
-        $persona->documento = $request->documento;
-        $persona->nombres = mb_strtoupper($request->nombres);
-        $persona->apellidos = mb_strtoupper($request->apellidos);
-        $persona->fecha_nacimiento = $request->fecha_nacimiento;
-        $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
-        $persona->pais = $request->pais;
+        $existe = Persona::where([
+            ['tipo_documento', $request->tipo_documento],
+            ['documento', $request->documento]
+        ])->get()->last();
 
-        $persona->save();
-        $id = $persona->id;
+        if ($existe != null) {
+            $response->verificacion = 'EXISTE';
+        } else {
 
-        $año = substr($request->fecha_nacimiento, 0, 4);
-        $codigo =  $año . (str_pad(strval(intval($id)), 4, "0", STR_PAD_LEFT));
-        $persona->codigo = $codigo;
-        Persona::where('id', $id)->update(['codigo' => $codigo]);
+            $persona->tipo_documento = $request->tipo_documento;
+            $persona->documento = $request->documento;
+            $persona->nombres = mb_strtoupper($request->nombres);
+            $persona->apellidos = mb_strtoupper($request->apellidos);
+            $persona->fecha_nacimiento = $request->fecha_nacimiento;
+            $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
+            $persona->pais = $request->pais;
+
+            $persona->save();
+            $id = $persona->id;
+
+            $año = substr($request->fecha_nacimiento, 0, 4);
+            $codigo =  $año . (str_pad(strval(intval($id)), 4, "0", STR_PAD_LEFT));
+            $persona->codigo = $codigo;
+            Persona::where('id', $id)->update(['codigo' => $codigo]);
+
+            $response->verificacion = null;
+        }
 
         $response->success = true;
         $response->data = $persona;
@@ -66,16 +77,35 @@ class PersonaController extends Controller
     public function updatePut(Request $request, $id)
     {
         $response = new \stdClass();
-        $persona = Persona::find($id);
-        $persona->codigo = mb_strtoupper($request->codigo);
-        $persona->dni = $request->dni;
-        $persona->nombres = mb_strtoupper($request->nombres);
-        $persona->apellidos = mb_strtoupper($request->apellidos);
-        $persona->fecha_nacimiento = $request->fecha_nacimiento;
-        $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
-        $persona->pais = $request->pais;
 
-        $persona->save();
+        $existe = Persona::where([
+            ['id', '<>', $id],
+            ['tipo_documento', $request->tipo_documento],
+            ['documento', $request->documento],
+        ])->get()->last();
+
+        if ($existe != null) {
+            $response->verificacion = 'EXISTE';
+        } else {
+            $persona = Persona::find($id);
+            $persona->tipo_documento = $request->tipo_documento;
+            $persona->documento = $request->documento;
+            $persona->nombres = mb_strtoupper($request->nombres);
+            $persona->apellidos = mb_strtoupper($request->apellidos);
+            $persona->fecha_nacimiento = $request->fecha_nacimiento;
+            $persona->lugar_vivienda = mb_strtoupper($request->lugar_vivienda);
+            $persona->pais = $request->pais;
+
+            $persona->save();
+
+            $año = substr($request->fecha_nacimiento, 0, 4);
+            $codigo =  $año . (str_pad(strval(intval($id)), 4, "0", STR_PAD_LEFT));
+            $persona->codigo = $codigo;
+            Persona::where('id', $id)->update(['codigo' => $codigo]);
+
+            $response->verificacion = null;
+        }
+
 
         $response->success = true;
         $response->data = $persona;

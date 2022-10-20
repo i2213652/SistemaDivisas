@@ -1,10 +1,11 @@
+
 <template>
-	<div style="background: rgb(196, 195, 195)">
-		<header>
-			<h1>El cambista al paso S.A.</h1>
+	<div>
+		<header class="bg-white">
+			<h1 class="text-center">El cambista al paso S.A.</h1>
 		</header>
 
-		<fieldset class="form-group border p-3 col-md-6 offset-md-3">
+		<fieldset class="form-group border p-3 col-md-6 offset-md-3 bg-white">
 			<legend class="w-auto px-2">Datos del personal</legend>
 
 			<br />
@@ -52,7 +53,8 @@
 						class="form-control text-center"
 						:class="[
 							submited
-								? $v.frmPersona.documento.$invalid
+								? $v.frmPersona.documento.$invalid ||
+								  frmPersona.documento.length != limite_documento // eslint-disable-line no-mixed-spaces-and-tabs
 									? 'is-invalid'
 									: 'is-valid'
 								: '',
@@ -64,6 +66,7 @@
 						:disabled="deshabilitado"
 					/>
 				</div>
+
 				<div class="row col-md-12">
 					<div class="form-group col-md-6">
 						<label for="">Nombres</label>
@@ -79,6 +82,7 @@
 							]"
 							v-model="frmPersona.nombres"
 							:disabled="deshabilitado"
+							onkeydown="return /[a-z, ]/i.test(event.key)"
 						/>
 					</div>
 					<div class="form-group col-md-6">
@@ -95,19 +99,27 @@
 							]"
 							v-model="frmPersona.apellidos"
 							:disabled="deshabilitado"
+							onkeydown="return /[a-z, ]/i.test(event.key)"
 						/>
 					</div>
 				</div>
-				<div class="form-group col-md-3">
+				<div class="form-group col-md-4">
 					<label for="">Fecha de nacimiento</label>
 					<input
 						type="date"
 						class="form-control"
+						:class="[
+							submited
+								? $v.frmPersona.fecha_nacimiento.$invalid
+									? 'is-invalid'
+									: 'is-valid'
+								: '',
+						]"
 						v-model="frmPersona.fecha_nacimiento"
 						:disabled="deshabilitado"
 					/>
 				</div>
-				<div class="form-group col-md-9">
+				<div class="form-group col-md-8">
 					<label for="">Lugar de vivienda</label>
 					<textarea
 						class="form-control mayus"
@@ -140,14 +152,14 @@
 						type="button"
 						class="btn btn-primary"
 						@click="Agregar"
-						:disabled="modo == 'EDICION'"
+						v-if="modo != 'EDICION'"
 					>
 						<i class="bi bi-plus-circle"></i> AGREGAR
 					</button>
 					<button
 						type="button"
 						class="btn btn-warning"
-						:disabled="modo == 'EDICION'"
+						v-if="modo != 'EDICION'"
 						@click="Actualizar"
 					>
 						<i class="bi bi-arrow-clockwise"></i> ACTUALIZAR
@@ -155,7 +167,7 @@
 					<button
 						type="button"
 						class="btn btn-success"
-						:disabled="modo != 'EDICION'"
+						v-if="modo == 'EDICION'"
 						@click="Grabar"
 					>
 						<i class="bi bi-save-fill"></i> GRABAR
@@ -163,7 +175,7 @@
 					<button
 						type="button"
 						class="btn btn-danger"
-						:disabled="modo != 'EDICION'"
+						v-if="modo == 'EDICION'"
 						@click="Cancelar"
 					>
 						<i class="bi bi-x-circle"></i>
@@ -173,8 +185,8 @@
 			</div>
 		</fieldset>
 		<br />
-		<h2 class="text-center">Lista de personas</h2>
-		<div class="col-md-10 offset-md-1">
+		<div class="col-md-10 offset-md-1 bg-white">
+			<h2 class="text-center">Lista de personas</h2>
 			<table class="table table-hover table-responsive">
 				<thead>
 					<tr>
@@ -184,7 +196,6 @@
 						<th>APELLIDOS</th>
 						<th>TIPO DOCUMENTO</th>
 						<th>DOCUMENTO</th>
-
 						<th>FECHA NACIMIENTO</th>
 						<th>LUGAR VIVIENDA</th>
 						<th>PAÍS</th>
@@ -242,12 +253,15 @@ export default {
 		};
 	},
 
-	validations: {
-		frmPersona: {
-			documento: { required },
-			nombres: { required },
-			apellidos: { required },
-		},
+	validations() {
+		return {
+			frmPersona: {
+				documento: { required },
+				nombres: { required },
+				apellidos: { required },
+				fecha_nacimiento: { required },
+			},
+		};
 	},
 	computed: {
 		limite_documento() {
@@ -261,6 +275,7 @@ export default {
 		},
 	},
 	mounted() {
+		document.title = "Sistema divisas";
 		this.Listar();
 	},
 	methods: {
@@ -313,7 +328,7 @@ export default {
 					title: "INGRESE EL " + tipo,
 					input: "number",
 					showCancelButton: true,
-					confirmButtonText: "Buscar",
+					confirmButtonText: "OK",
 					showLoaderOnConfirm: true,
 					inputValidator: (value) => {
 						if (tipo == "DNI" && value.length != 8) {
@@ -339,7 +354,8 @@ export default {
 										return self.$swal.fire({
 											icon: "success",
 											title: "¡PERSONA ENCONTRADA!",
-											allowOutsideClick: false,
+											timer: 1200,
+											showConfirmButton: false,
 										});
 									} else {
 										return self.$swal.fire({
@@ -367,12 +383,44 @@ export default {
 			this.submited = true;
 
 			if (this.$v.frmPersona.$invalid) {
-				return this.$swal.fire({
-					icon: "warnign",
+				this.$swal.fire({
+					icon: "warning",
 					title: "¡Ups!",
 					text: "Faltan registrar algunos campos",
 					allowOutsideClick: false,
 				});
+				return false;
+			}
+
+			if (this.frmPersona.documento.length != this.limite_documento) {
+				let tipo_documento = this.frmPersona.tipo_documento;
+
+				this.$swal.fire({
+					icon: "warning",
+					title: "¡Ups!",
+					text:
+						"El " +
+						tipo_documento +
+						" debe contener " +
+						this.limite_documento +
+						" dígitos",
+					allowOutsideClick: false,
+				});
+				return false;
+			}
+
+			let fecha_nacimiento = this.moment(this.frmPersona.fecha_nacimiento);
+			let diferencia_anios = this.moment().diff(fecha_nacimiento, "years");
+
+			if (diferencia_anios < 18) {
+				this.frmPersona.fecha_nacimiento = null;
+				this.$swal.fire({
+					icon: "warning",
+					title: "¡Ups!",
+					text: "La persona no es mayor de edad",
+					allowOutsideClick: false,
+				});
+				return false;
 			}
 
 			if (this.frmPersona.id == null) {
@@ -380,23 +428,37 @@ export default {
 					.post("/api/personas", self.frmPersona)
 					.then(function (response) {
 						let status = response.status;
+						let verificacion = response.data.verificacion;
+
 						if (status == 200) {
-							self.Listar();
-							self.Limpiar();
-							self.submited = false;
-							self.deshabilitado = true;
-							self.modo = "VISTA";
-							return self.$swal.fire({
-								icon: "success",
-								title: "¡ÉXITO!",
-								allowOutsideClick: false,
-							});
+							if (verificacion == "EXISTE") {
+								self.frmPersona.documento = null;
+								return self.$swal.fire({
+									icon: "error",
+									title: "¡Ups!",
+									text: "El documento ingresado ya se encuentra registrado.",
+									allowOutsideClick: false,
+								});
+							} else {
+								self.Listar();
+								self.Limpiar();
+								self.submited = false;
+								self.deshabilitado = true;
+								self.modo = "VISTA";
+								return self.$swal.fire({
+									icon: "success",
+									title: "¡ÉXITO!",
+									timer: 1200,
+									showConfirmButton: false,
+								});
+							}
 						}
 					});
 			} else {
 				await this.$axios
 					.put("/api/personas/" + self.frmPersona.id, self.frmPersona)
 					.then(function (response) {
+						console.log(response);
 						let status = response.status;
 						if (status == 200) {
 							self.Listar();
@@ -407,7 +469,8 @@ export default {
 							return self.$swal.fire({
 								icon: "success",
 								title: "¡ÉXITO!",
-								allowOutsideClick: false,
+								timer: 1200,
+								showConfirmButton: false,
 							});
 						}
 					});
@@ -430,8 +493,8 @@ export default {
 </script>
 
 <style>
-html {
-	background: rgb(196, 195, 195);
+body {
+	background-image: url("assets/money.jpeg");
 }
 .mayus {
 	text-transform: uppercase;
