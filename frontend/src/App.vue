@@ -458,7 +458,6 @@ export default {
 				await this.$axios
 					.put("/api/personas/" + self.frmPersona.id, self.frmPersona)
 					.then(function (response) {
-						console.log(response);
 						let status = response.status;
 						if (status == 200) {
 							self.Listar();
